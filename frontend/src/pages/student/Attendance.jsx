@@ -1,32 +1,74 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import { getStudentAttendance } from "../../services/studentService";
 
 function Attendance() {
+    const [attendance, setAttendance] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAttendance = async () => {
+            try {
+                const data = await getStudentAttendance();
+                setAttendance(data);
+            } catch (error) {
+                console.error("Error fetching attendance:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAttendance();
+    }, []);
+
     return (
         <DashboardLayout>
-            <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-                <div className="overflow-x-auto">
-                <div className="p-6 border-b">
-                    <h2 className="text-xl font-semibold text-slate-700">
-                        Attendance Record
+            <div className="bg-white rounded-2xl shadow-md overflow-hidden animate-fadeIn">
+                <div className="p-6 border-b bg-slate-50">
+                    <h2 className="text-xl font-bold text-slate-800">
+                        Detailed Attendance Record
                     </h2>
+                    <p className="text-sm text-slate-500 mt-1">
+                        Track your subject-wise presence across the semester.
+                    </p>
                 </div>
 
+                <div className="overflow-x-auto">
                     <table className="min-w-full text-sm">
-                    <thead className="bg-indigo-50 text-indigo-700">
-                        <tr>
-                            <th className="p-4 text-left">Subject</th>
-                            <th className="p-4 text-left">Classes Held</th>
-                            <th className="p-4 text-left">Classes Attended</th>
-                            <th className="p-4 text-left">Percentage</th>
-                        </tr>
-                    </thead>
+                        <thead className="bg-indigo-600 text-white">
+                            <tr>
+                                <th className="p-4 text-left font-semibold uppercase tracking-wider">Subject</th>
+                                <th className="p-4 text-center font-semibold uppercase tracking-wider">Total Classes</th>
+                                <th className="p-4 text-center font-semibold uppercase tracking-wider">Attended</th>
+                                <th className="p-4 text-right font-semibold uppercase tracking-wider">Percentage (%)</th>
+                            </tr>
+                        </thead>
 
-                    <tbody className="text-gray-700">
-                        <AttendanceRow subject="Mathematics" held="40" attended="34" percent="85%" />
-                        <AttendanceRow subject="Physics" held="38" attended="30" percent="79%" />
-                        <AttendanceRow subject="Computer Science" held="42" attended="39" percent="93%" />
-                    </tbody>
-                </table>
+                        <tbody className="text-gray-700 divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="4" className="p-12 text-center text-slate-400">
+                                        Loading academic records...
+                                    </td>
+                                </tr>
+                            ) : attendance.length > 0 ? (
+                                attendance.map((row, idx) => (
+                                    <AttendanceRow 
+                                        key={idx}
+                                        subject={row.subject} 
+                                        held={row.totalClasses} 
+                                        attended={row.classesAttended} 
+                                        percent={`${row.percentage}%`} 
+                                    />
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="4" className="p-12 text-center text-slate-400">
+                                        No attendance records found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </DashboardLayout>
@@ -34,12 +76,16 @@ function Attendance() {
 }
 
 function AttendanceRow({ subject, held, attended, percent }) {
+    const isLow = parseFloat(percent) < 75;
+
     return (
-        <tr className="border-t hover:bg-gray-50 transition">
-            <td className="p-4">{subject}</td>
-            <td className="p-4">{held}</td>
-            <td className="p-4">{attended}</td>
-            <td className="p-4 font-semibold text-indigo-600">{percent}</td>
+        <tr className="hover:bg-slate-50 transition-colors">
+            <td className="p-4 font-medium text-slate-800">{subject}</td>
+            <td className="p-4 text-center">{held}</td>
+            <td className="p-4 text-center">{attended}</td>
+            <td className={`p-4 text-right font-bold ${isLow ? 'text-red-500' : 'text-indigo-600'}`}>
+                {percent}
+            </td>
         </tr>
     );
 }

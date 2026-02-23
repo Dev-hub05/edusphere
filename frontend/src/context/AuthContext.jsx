@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
 import { setToken, getToken, removeToken } from "../utils/tokenHandler";
 import { useNavigate } from "react-router-dom";
+import { login as loginApi, getMe } from "../services/authService";
 
 export const AuthContext = createContext();
 
@@ -11,75 +11,48 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // 🔹 Load user from token on refresh
+    // Load user from token on refresh
     useEffect(() => {
-        const token = getToken();
+        const loadUser = async () => {
+            const token = getToken();
 
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-
-                // Check expiration
-                if (decoded.exp * 1000 < Date.now()) {
+            if (token) {
+                try {
+                    const userData = await getMe();
+                    setUser(userData);
+                } catch (error) {
+                    console.error("Session expired or invalid token");
                     logout();
-                } else {
-                    setUser(decoded);
                 }
-            } catch (error) {
-                console.error("Invalid token");
-                logout();
             }
-        }
+            setLoading(false);
+        };
 
-        setLoading(false);
+        loadUser();
     }, []);
 
-    // 🔹 Login function
-    // const login = (token) => {
-    //     setToken(token);
-    //     const decoded = jwtDecode(token);
-    //     setUser(decoded);
+    // Login function
+    const login = async (credentials) => {
+        try {
+            const data = await loginApi(credentials);
+            setToken(data.token);
+            setUser(data.user);
 
-    //     // Redirect based on role
-    //     if (decoded.role === "student") {
-    //         navigate("/student/dashboard");
-    //     } else if (decoded.role === "faculty") {
-    //         navigate("/faculty/dashboard");
-    //     } else if (decoded.role === "admin") {
-    //         navigate("/admin/dashboard");
-    //     }
-    // };
-    const login = (data) => {
-        // If it's already an object (dummy mode)
-        if (typeof data === "object") {
-            setUser(data);
-
-            if (data.role === "student") {
+            // Redirect based on role
+            if (data.user.role === "student") {
                 navigate("/student/dashboard");
-            } else if (data.role === "faculty") {
+            } else if (data.user.role === "faculty") {
                 navigate("/faculty/dashboard");
-            } else if (data.role === "admin") {
+            } else if (data.user.role === "admin") {
                 navigate("/admin/dashboard");
             }
-
-            return;
-        }
-
-        // If it's a real JWT string
-        setToken(data);
-        const decoded = jwtDecode(data);
-        setUser(decoded);
-
-        if (decoded.role === "student") {
-            navigate("/student/dashboard");
-        } else if (decoded.role === "faculty") {
-            navigate("/faculty/dashboard");
-        } else if (decoded.role === "admin") {
-            navigate("/admin/dashboard");
+        } catch (error) {
+            console.error("Login failed:", error.response?.data?.message || error.message);
+            throw error; // Re-throw to handle in UI
         }
     };
 
-    // 🔹 Logout function
+    // Logout function
     const logout = () => {
         removeToken();
         setUser(null);
@@ -88,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{ user, login, logout, loading }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };

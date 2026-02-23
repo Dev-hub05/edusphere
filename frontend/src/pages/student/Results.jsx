@@ -1,43 +1,94 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import { getStudentResults } from "../../services/studentService";
 
 function Results() {
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchResults = async () => {
+            try {
+                const data = await getStudentResults();
+                setResults(data);
+            } catch (error) {
+                console.error("Error fetching results:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchResults();
+    }, []);
+
     return (
         <DashboardLayout>
-            <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-                <div className="overflow-x-auto">
-                <div className="p-6 border-b">
-                    <h2 className="text-xl font-semibold text-slate-700">
+            <div className="bg-white rounded-2xl shadow-md overflow-hidden animate-fadeIn">
+                <div className="p-6 border-b bg-slate-50">
+                    <h2 className="text-xl font-bold text-slate-800">
                         Academic Results
                     </h2>
+                    <p className="text-sm text-slate-500 mt-1">
+                        Official marks and grades for your completed examinations.
+                    </p>
                 </div>
 
-                <table className="min-w-full text-sm">
-                    <thead className="bg-indigo-50 text-indigo-700">
-                        <tr>
-                            <th className="p-4 text-left">Subject</th>
-                            <th className="p-4 text-left">Marks</th>
-                            <th className="p-4 text-left">Grade</th>
-                        </tr>
-                    </thead>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                        <thead className="bg-emerald-600 text-white">
+                            <tr>
+                                <th className="p-4 text-left font-semibold uppercase tracking-wider">Subject</th>
+                                <th className="p-4 text-center font-semibold uppercase tracking-wider">Exam Type</th>
+                                <th className="p-4 text-center font-semibold uppercase tracking-wider">Semester</th>
+                                <th className="p-4 text-center font-semibold uppercase tracking-wider">Marks</th>
+                                <th className="p-4 text-right font-semibold uppercase tracking-wider">Grade</th>
+                            </tr>
+                        </thead>
 
-                    <tbody className="text-gray-700">
-                        <ResultRow subject="Mathematics" marks="88" grade="A" />
-                        <ResultRow subject="Physics" marks="75" grade="B+" />
-                        <ResultRow subject="Computer Science" marks="92" grade="A+" />
-                    </tbody>
-                </table>
+                        <tbody className="text-gray-700 divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="p-12 text-center text-slate-400">
+                                        Loading results...
+                                    </td>
+                                </tr>
+                            ) : results.length > 0 ? (
+                                results.map((result, idx) => (
+                                    <ResultRow 
+                                        key={idx}
+                                        subject={result.subject} 
+                                        examType={result.examType}
+                                        semester={result.semester}
+                                        marks={`${result.marks}/${result.totalMarks}`} 
+                                        grade={result.grade} 
+                                    />
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="p-12 text-center text-slate-400">
+                                        No results declared yet.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </DashboardLayout>
     );
 }
 
-function ResultRow({ subject, marks, grade }) {
+function ResultRow({ subject, examType, semester, marks, grade }) {
+    const isPass = grade !== "F";
+
     return (
-        <tr className="border-t hover:bg-gray-50 transition">
-            <td className="p-4">{subject}</td>
-            <td className="p-4">{marks}</td>
-            <td className="p-4 font-semibold text-green-600">{grade}</td>
+        <tr className="hover:bg-slate-50 transition-colors">
+            <td className="p-4 font-medium text-slate-800">{subject}</td>
+            <td className="p-4 text-center capitalize">{examType}</td>
+            <td className="p-4 text-center">S{semester}</td>
+            <td className="p-4 text-center font-semibold">{marks}</td>
+            <td className={`p-4 text-right font-bold ${!isPass ? 'text-red-500' : 'text-emerald-600'}`}>
+                {grade}
+            </td>
         </tr>
     );
 }
