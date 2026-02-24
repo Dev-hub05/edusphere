@@ -62,6 +62,12 @@ function FacultyDashboard() {
                     <StatCard title="Students Assigned" value={stats.students} />
                     <StatCard title="Pending Grievances" value={stats.grievances} />
                 </div>
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                    <h3 className="font-semibold mb-3">Today's Lectures</h3>
+                    <p className="text-sm text-slate-600">
+                        BTech CSE 2A – Data Structures – 10:00 AM
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <NoticeWidget />
                     <EventWidget />

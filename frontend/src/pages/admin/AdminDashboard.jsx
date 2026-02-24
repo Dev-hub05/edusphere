@@ -51,6 +51,12 @@ function AdminDashboard() {
                     <StatCard title="Total Faculty" value={stats.faculty} />
                     <StatCard title="Active Notices" value={stats.notices} />
                 </div>
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                    <h3 className="font-semibold mb-3">Timetable Overview</h3>
+                    <p className="text-sm text-slate-600">
+                        25 lectures scheduled this week.
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <NoticeWidget />
                     <EventWidget />

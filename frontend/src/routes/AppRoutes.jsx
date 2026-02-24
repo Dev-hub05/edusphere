@@ -24,6 +24,7 @@ import ManageMarks from "../pages/faculty/ManageMarks";
 import PerformanceAnalytics from "../pages/faculty/PerformanceAnalytics";
 import FacultyGrievances from "../pages/faculty/FacultyGrievances";
 import MultiLectureAttendance from "../pages/faculty/MultiLectureAttendance";
+import FacultyTimetable from "../pages/faculty/Timetable";
 
 // Admin Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -34,6 +35,7 @@ import Notices from "../pages/admin/Notices";
 import Reports from "../pages/admin/Reports";
 import CreateNotice from "../pages/admin/CreateNotice";
 import CreateEvent from "../pages/admin/CreateEvent";
+import ManageTimetable from "../pages/admin/ManageTimetable";
 
 
 // Parents pages
@@ -222,6 +224,24 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute allowedRoles={["admin"]}>
                         <ManageUsers />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin/manage-timetable"
+                element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                        <ManageTimetable />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/faculty/timetable"
+                element={
+                    <ProtectedRoute allowedRoles={["faculty"]}>
+                        <FacultyTimetable />
                     </ProtectedRoute>
                 }
             />

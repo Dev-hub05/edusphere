@@ -65,10 +65,17 @@ function StudentDashboard() {
                     <StatCard title="GPA" value="8.4" />
                     <StatCard title="Pending Grievances" value={grievances.length} />
                 </div>
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                    <h3 className="font-semibold mb-3">Today's Schedule</h3>
+                    <p className="text-sm text-slate-600">
+                        Data Structures – 10:00 AM
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <NoticeWidget />
                     <EventWidget />
                 </div>
+
 
                 {/* Attendance Chart */}
                 <AttendanceChart attendance={attendance} />
