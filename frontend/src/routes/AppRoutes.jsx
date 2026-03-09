@@ -18,6 +18,7 @@ import GatepassHistory from "../pages/student/GatepassHistory";
 import Timetable from "../pages/student/Timetable";
 import CourseRegistration from "../pages/student/CourseRegistration";
 import MyCourses from "../pages/student/MyCourses";
+import MyAdmitCard from "../pages/student/MyAdmitCard";
 
 // Faculty Pages
 import FacultyDashboard from "../pages/faculty/FacultyDashboard";
@@ -171,6 +172,15 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute allowedRoles={["student"]}>
                         <MyCourses />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/student/admit-card"
+                element={
+                    <ProtectedRoute allowedRoles={["student"]}>
+                        <MyAdmitCard />
                     </ProtectedRoute>
                 }
             />

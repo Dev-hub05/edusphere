@@ -11,7 +11,7 @@ function Sidebar({ closeSidebar }) {
             <div className="p-6 text-2xl font-bold border-b border-indigo-800">
                 EduSphere
             </div>
-            
+
 
             <div className="flex-1 p-6 space-y-2 text-sm">
 
@@ -30,9 +30,10 @@ function Sidebar({ closeSidebar }) {
                         <SidebarItem to="/student/gatepass/status" label="Gatepass Status" />
                         <SidebarItem to="/student/gatepass/history" label="Gatepass History" />
                         <SidebarItem to="/student/course-registration" label="Course Registration" />
+                        <SidebarItem to="/student/admit-card" label="My Admit Card" />
                         <SidebarItem to="/notices" label="Notice Board" />
                         <SidebarItem to="/events" label="Events" />
-                        
+
                     </>
                 )}
 
@@ -49,7 +50,7 @@ function Sidebar({ closeSidebar }) {
                         <SidebarItem to="/faculty/grievances" label="Grievances" />
                         <SidebarItem to="/notices" label="Notice Board" />
                         <SidebarItem to="/events" label="Events" />
-                        
+
                     </>
                 )}
 
