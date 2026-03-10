@@ -3,16 +3,12 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 
-// Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
 connectDB();
 
-// Initialize Express app
 const app = express();
 
-// ==================== MIDDLEWARE ====================
 
 // Parse JSON body
 app.use(express.json());
