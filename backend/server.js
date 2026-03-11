@@ -41,6 +41,15 @@ app.use("/api/student", require("./routes/studentRoutes"));
 // Admin routes
 app.use("/api/admin", require("./routes/adminRoutes"));
 
+// Faculty routes
+app.use("/api/faculty", require("./routes/facultyRoutes"));
+
+// Warden routes
+app.use("/api/warden", require("./routes/wardenRoutes"));
+
+// Parent routes
+app.use("/api/parent", require("./routes/parentRoutes"));
+
 // ==================== ERROR HANDLING ====================
 
 // 404 handler

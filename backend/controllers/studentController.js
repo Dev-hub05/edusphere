@@ -286,6 +286,69 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
+// ==================== GATEPASS ====================
+
+const Gatepass = require("../models/Gatepass");
+
+// @desc    Request a gatepass
+// @route   POST /api/student/gatepass
+// @access  Private (student)
+const requestGatepass = async (req, res) => {
+    try {
+        const { type, reason, outDate, inDate } = req.body;
+
+        if (!type || !reason || !outDate || !inDate) {
+            return res.status(400).json({ message: "type, reason, outDate and inDate are required" });
+        }
+
+        const gatepass = await Gatepass.create({
+            student: req.user.id,
+            type,
+            reason,
+            outDate: new Date(outDate),
+            inDate: new Date(inDate),
+        });
+
+        res.status(201).json({ message: "Gatepass requested successfully", gatepass });
+    } catch (error) {
+        console.error("Request gatepass error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// @desc    Get student's gatepass history
+// @route   GET /api/student/gatepasses
+// @access  Private (student)
+const getGatepasses = async (req, res) => {
+    try {
+        const gatepasses = await Gatepass.find({ student: req.user.id })
+            .populate("warden", "name")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json(gatepasses);
+    } catch (error) {
+        console.error("Get gatepasses error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+// ==================== FEES ====================
+
+const Fee = require("../models/Fee");
+
+// @desc    Get student's fee records
+// @route   GET /api/student/fees
+// @access  Private (student)
+const getFees = async (req, res) => {
+    try {
+        const fees = await Fee.find({ student: req.user.id }).sort({ dueDate: -1 });
+        res.status(200).json(fees);
+    } catch (error) {
+        console.error("Get fees error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 module.exports = {
     getProfile,
     updateProfile,
@@ -295,4 +358,7 @@ module.exports = {
     submitGrievance,
     getGrievances,
     getDashboardStats,
+    requestGatepass,
+    getGatepasses,
+    getFees,
 };

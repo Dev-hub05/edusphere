@@ -11,6 +11,9 @@ const {
     submitGrievance,
     getGrievances,
     getDashboardStats,
+    requestGatepass,
+    getGatepasses,
+    getFees,
 } = require("../controllers/studentController");
 
 // All routes below require: logged in + student role
@@ -39,5 +42,14 @@ router.post("/grievance", submitGrievance);
 
 // GET /api/student/grievances — Get all submitted grievances
 router.get("/grievances", getGrievances);
+
+// POST /api/student/gatepass — Request a gatepass
+router.post("/gatepass", requestGatepass);
+
+// GET /api/student/gatepasses — Get gatepass history
+router.get("/gatepasses", getGatepasses);
+
+// GET /api/student/fees — Get fee records
+router.get("/fees", getFees);
 
 module.exports = router;
