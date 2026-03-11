@@ -1,17 +1,14 @@
 import { useContext } from "react";
 import { TimetableContext } from "../../context/TimetableContext";
 
-function WeeklyTimetable({ classNameFilter }) {
+function WeeklyTimetable() {
 
     const { timetable } = useContext(TimetableContext);
 
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-    const filteredLectures = timetable.filter(
-        lecture => lecture.className === classNameFilter
-    );
-
-    const timeSlots = [...new Set(filteredLectures.map(l => l.time))];
+    // Unique time slots
+    const timeSlots = [...new Set(timetable.map(l => `${l.startTime} - ${l.endTime}`))];
 
     return (
         <div className="bg-white rounded-2xl shadow-md overflow-x-auto">
@@ -37,23 +34,28 @@ function WeeklyTimetable({ classNameFilter }) {
                             </td>
 
                             {days.map(day => {
-                                const lecture = filteredLectures.find(
-                                    l => l.day === day && l.time === slot
+                                const lecture = timetable.find(
+                                    l => l.day === day && `${l.startTime} - ${l.endTime}` === slot
                                 );
 
                                 return (
                                     <td key={day} className="p-4">
                                         {lecture ? (
-                                            <div className="bg-indigo-100 rounded-lg p-2 text-xs">
-                                                <p className="font-semibold">
-                                                    {lecture.subject}
+                                            <div className="bg-indigo-100 rounded-lg p-2 text-xs h-full flex flex-col justify-center min-h-[4rem]">
+                                                <p className="font-semibold text-indigo-900 leading-tight mb-1">
+                                                    {lecture.course?.title || "Unknown Course"}
                                                 </p>
-                                                <p className="text-gray-600">
-                                                    {lecture.faculty}
+                                                <p className="text-indigo-600 font-medium text-[10px]">
+                                                    By {lecture.course?.faculty?.name || "Faculty"}
                                                 </p>
+                                                {lecture.roomContext && (
+                                                    <p className="text-gray-500 text-[10px] mt-1">
+                                                        {lecture.roomContext}
+                                                    </p>
+                                                )}
                                             </div>
                                         ) : (
-                                            "-"
+                                            <div className="text-gray-300">-</div>
                                         )}
                                     </td>
                                 );

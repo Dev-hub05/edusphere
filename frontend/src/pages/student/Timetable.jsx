@@ -1,20 +1,28 @@
+import { useContext, useEffect } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import WeeklyTimetable from "../../components/common/WeeklyTimetable";
+import { AuthContext } from "../../context/AuthContext";
+import { TimetableContext } from "../../context/TimetableContext";
 
 function Timetable() {
+    const { user } = useContext(AuthContext);
+    const { fetchTimetable } = useContext(TimetableContext);
 
-    // Later this should come from logged-in user data
-    const studentClass = "BTech CSE 2A";
+    useEffect(() => {
+        if (user) {
+            fetchTimetable(user.department, user.semester);
+        }
+    }, [user, fetchTimetable]);
 
     return (
         <DashboardLayout>
             <div className="space-y-8 animate-fadeIn">
 
                 <h2 className="text-xl font-semibold">
-                    My Class Timetable
+                    My Class Timetable ({user?.department} Sem {user?.semester})
                 </h2>
 
-                <WeeklyTimetable classNameFilter={studentClass} />
+                <WeeklyTimetable />
 
             </div>
         </DashboardLayout>

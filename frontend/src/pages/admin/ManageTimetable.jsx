@@ -1,32 +1,42 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { TimetableContext } from "../../context/TimetableContext";
+import { CourseContext } from "../../context/CourseContext";
 
 function ManageTimetable() {
 
     const { addLecture } = useContext(TimetableContext);
+    const { courses, fetchCourses } = useContext(CourseContext);
+
+    useEffect(() => {
+        fetchCourses();
+    }, [fetchCourses]);
 
     const [form, setForm] = useState({
-        className: "",
-        subject: "",
-        faculty: "",
+        course: "",
+        department: "Computer Science",
+        semester: 1,
         day: "",
-        time: ""
+        startTime: "",
+        endTime: "",
+        roomContext: ""
     });
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        addLecture(form);
+        await addLecture(form);
         setForm({
-            className: "",
-            subject: "",
-            faculty: "",
+            course: "",
+            department: form.department,
+            semester: form.semester,
             day: "",
-            time: ""
+            startTime: "",
+            endTime: "",
+            roomContext: ""
         });
     };
 
@@ -41,41 +51,59 @@ function ManageTimetable() {
                 <div className="bg-white rounded-2xl shadow-md p-6 max-w-2xl">
                     <form onSubmit={handleSubmit} className="space-y-4">
 
-                        <input name="className" placeholder="Class"
-                            value={form.className}
-                            onChange={handleChange}
-                            className="w-full border p-2 rounded-md" required />
+                        <div className="grid grid-cols-2 gap-4">
+                            <select name="course"
+                                value={form.course}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md" required>
+                                <option value="">Select Course</option>
+                                {courses.map(c => (
+                                    <option key={c._id || c.id} value={c._id || c.id}>{c.title || c.name}</option>
+                                ))}
+                            </select>
 
-                        <input name="subject" placeholder="Subject"
-                            value={form.subject}
-                            onChange={handleChange}
-                            className="w-full border p-2 rounded-md" required />
+                            <input name="department" placeholder="Department"
+                                value={form.department}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md" required />
 
-                        <input name="faculty" placeholder="Faculty"
-                            value={form.faculty}
-                            onChange={handleChange}
-                            className="w-full border p-2 rounded-md" required />
+                            <input name="semester" placeholder="Semester" type="number"
+                                value={form.semester}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md" required />
 
-                        <select name="day"
-                            value={form.day}
-                            onChange={handleChange}
-                            className="w-full border p-2 rounded-md" required>
-                            <option value="">Select Day</option>
-                            <option>Monday</option>
-                            <option>Tuesday</option>
-                            <option>Wednesday</option>
-                            <option>Thursday</option>
-                            <option>Friday</option>
-                        </select>
+                            <select name="day"
+                                value={form.day}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md" required>
+                                <option value="">Select Day</option>
+                                <option>Monday</option>
+                                <option>Tuesday</option>
+                                <option>Wednesday</option>
+                                <option>Thursday</option>
+                                <option>Friday</option>
+                                <option>Saturday</option>
+                            </select>
 
-                        <input name="time" placeholder="Time Slot (10:00 - 11:00)"
-                            value={form.time}
-                            onChange={handleChange}
-                            className="w-full border p-2 rounded-md" required />
+                            <input name="startTime" placeholder="Start Time (e.g., 10:00 AM)"
+                                value={form.startTime}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md" required />
+                                
+                            <input name="endTime" placeholder="End Time (e.g., 11:00 AM)"
+                                value={form.endTime}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md" required />
+                                
+                            <input name="roomContext" placeholder="Room/Lab (Optional)"
+                                value={form.roomContext}
+                                onChange={handleChange}
+                                className="w-full border p-2 rounded-md col-span-2" />
+                        </div>
 
                         <button
                             type="submit"
-                            className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
+                            className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 w-full mt-4">
                             Add Lecture
                         </button>
 

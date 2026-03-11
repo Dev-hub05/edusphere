@@ -56,6 +56,9 @@ app.use("/api/timetable", require("./routes/timetableRoutes"));
 // Feedback routes
 app.use("/api/feedback", require("./routes/feedbackRoutes"));
 
+// Common resources (all roles)
+app.use("/api/common", require("./routes/commonRoutes"));
+
 // ==================== ERROR HANDLING ====================
 
 // 404 handler

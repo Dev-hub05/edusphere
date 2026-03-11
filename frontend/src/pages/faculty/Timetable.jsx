@@ -1,10 +1,20 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { TimetableContext } from "../../context/TimetableContext";
+import { AuthContext } from "../../context/AuthContext";
 
 function FacultyTimetable() {
 
-    const { timetable } = useContext(TimetableContext);
+    const { timetable, fetchTimetable } = useContext(TimetableContext);
+    const { user } = useContext(AuthContext);
+
+    useEffect(() => {
+        fetchTimetable();
+    }, [fetchTimetable]);
+
+    const myLectures = timetable.filter(
+        lecture => lecture.course?.faculty?._id === user?._id || lecture.course?.faculty === user?._id
+    );
 
     return (
         <DashboardLayout>
@@ -27,12 +37,12 @@ function FacultyTimetable() {
                         </thead>
 
                         <tbody>
-                            {timetable.map(lecture => (
-                                <tr key={lecture.id} className="border-t">
-                                    <td className="p-4">{lecture.className}</td>
-                                    <td className="p-4">{lecture.subject}</td>
+                            {myLectures.map(lecture => (
+                                <tr key={lecture._id || lecture.id} className="border-t">
+                                    <td className="p-4">{lecture.department} Sem {lecture.semester}</td>
+                                    <td className="p-4">{lecture.course?.title || lecture.subject}</td>
                                     <td className="p-4">{lecture.day}</td>
-                                    <td className="p-4">{lecture.time}</td>
+                                    <td className="p-4">{lecture.startTime} - {lecture.endTime}</td>
                                     <td className="p-4">
                                         <button className="bg-green-600 text-white px-3 py-1 rounded-md text-xs">
                                             Mark Attendance

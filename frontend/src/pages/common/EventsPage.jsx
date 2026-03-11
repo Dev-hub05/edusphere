@@ -22,11 +22,11 @@ function EventsPage() {
                         </thead>
                         <tbody>
                             {events.map(event => (
-                                <tr key={event.id} className="border-b hover:bg-gray-50 transition">
+                                <tr key={event._id || event.id} className="border-b hover:bg-gray-50 transition">
                                     <td className="py-3 font-medium">
                                         {event.title}
                                     </td>
-                                    <td>{event.date}</td>
+                                    <td>{new Date(event.date).toLocaleDateString()}</td>
                                     <td className="text-gray-600">
                                         {event.description}
                                     </td>

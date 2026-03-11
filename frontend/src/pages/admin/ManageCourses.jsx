@@ -96,10 +96,10 @@ function ManageCourses() {
 
                         <tbody>
                             {courses.map(course => (
-                                <tr key={course.id} className="border-t">
-                                    <td className="p-4">{course.code}</td>
-                                    <td className="p-4">{course.name}</td>
-                                    <td className="p-4">{course.faculty}</td>
+                                <tr key={course._id || course.id} className="border-t">
+                                    <td className="p-4">{course.courseCode || course.code}</td>
+                                    <td className="p-4">{course.title || course.name}</td>
+                                    <td className="p-4">{course.faculty?.name || course.faculty}</td>
                                 </tr>
                             ))}
                         </tbody>

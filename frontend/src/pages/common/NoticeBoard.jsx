@@ -12,7 +12,7 @@ function NoticeBoard() {
                 <h2 className="text-xl font-semibold">Notice Board</h2>
 
                 {notices.map((notice) => (
-                    <div key={notice.id} className="bg-white rounded-xl shadow-md p-6">
+                    <div key={notice._id || notice.id} className="bg-white rounded-xl shadow-md p-6">
                         <h3 className="font-semibold text-lg mb-2">
                             {notice.title}
                         </h3>
