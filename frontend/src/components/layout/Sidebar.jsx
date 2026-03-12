@@ -32,6 +32,8 @@ function Sidebar({ closeSidebar }) {
                         <SidebarItem to="/student/course-registration" label="Course Registration" />
                         <SidebarItem to="/student/examination-form" label="Examination Form" />
                         <SidebarItem to="/student/exam-schedule" label="Exam Schedule" />
+                        <SidebarItem to="/student/fee-payment" label="Fee Payment" />
+                        <SidebarItem to="/student/fee-status" label="Fee Status" />
                         <SidebarItem to="/student/admit-card" label="My Admit Card" />
                         <SidebarItem to="/notices" label="Notice Board" />
                         <SidebarItem to="/events" label="Events" />
