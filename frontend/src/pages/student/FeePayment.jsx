@@ -1,19 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import FeeSummary from '../../components/student/FeeSummary';
+import Loader from '../../components/common/Loader';
+import ErrorMessage from '../../components/common/ErrorMessage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiCheckCircle, FiShield, FiCreditCard, FiArrowRight, FiInfo } from 'react-icons/fi';
+import { getStudentFees } from '../../services/studentService';
 
 const FeePayment = () => {
     const [selectedMethod, setSelectedMethod] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [fees, setFees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const mockFeeData = {
-        totalDue: 45000,
-        paidAmount: 25000,
-        pendingAmount: 20000,
-        lastPayment: { amount: 12000, type: 'Tuition', ref: 'TXN_9982341' }
+    useEffect(() => {
+        const fetchFees = async () => {
+            try {
+                const data = await getStudentFees();
+                setFees(data);
+            } catch (err) {
+                console.error("Error fetching fees for payment:", err);
+                setError("Failed to load fee information. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFees();
+    }, []);
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <Loader />
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <ErrorMessage message={error} />
+            </DashboardLayout>
+        );
+    }
+
+    // Calculate summary data from the actual fee records
+    const totalDue = fees.reduce((sum, fee) => sum + fee.amount, 0);
+    const paidAmount = fees.filter(fee => fee.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
+    const pendingAmount = totalDue - paidAmount;
+    
+    // Find the most recent paid fee
+    const sortedPaidFees = [...fees].filter(f => f.status === 'paid').sort((a, b) => new Date(b.paidDate) - new Date(a.paidDate));
+    const lastPayment = sortedPaidFees.length > 0 ? {
+        amount: sortedPaidFees[0].amount,
+        type: sortedPaidFees[0].type,
+        ref: sortedPaidFees[0].transactionId || 'N/A'
+    } : null;
+
+    const summaryData = {
+        totalDue,
+        paidAmount,
+        pendingAmount,
+        lastPayment
     };
 
     const paymentMethods = [
@@ -38,7 +91,7 @@ const FeePayment = () => {
                     <p className="text-gray-500 mt-1">Settle your semester dues through our secure gateway.</p>
                 </header>
 
-                <FeeSummary feeData={mockFeeData} />
+                <FeeSummary feeData={summaryData} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Payment Form */}
@@ -70,7 +123,7 @@ const FeePayment = () => {
                                     <div className="space-y-4">
                                         <div className="flex justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                             <span className="text-gray-500 font-medium">Select Amount to Pay</span>
-                                            <span className="text-indigo-600 font-bold">₹{mockFeeData.pendingAmount.toLocaleString()}</span>
+                                            <span className="text-indigo-600 font-bold">₹{summaryData.pendingAmount.toLocaleString()}</span>
                                         </div>
 
                                         <button
@@ -109,7 +162,7 @@ const FeePayment = () => {
                                     </div>
                                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
                                     <p className="text-gray-500 max-w-xs mx-auto mb-8">
-                                        Your payment of ₹{mockFeeData.pendingAmount.toLocaleString()} has been processed and your records are updated.
+                                        Your payment of ₹{summaryData.pendingAmount.toLocaleString()} has been processed and your records are updated.
                                     </p>
                                     <div className="flex gap-4">
                                         <button className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-all">

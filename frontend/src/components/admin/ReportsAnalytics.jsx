@@ -1,26 +1,54 @@
 import BarChart from "../charts/BarChart";
 import { ATTENDANCE_THRESHOLD } from "../../utils/attendanceUtils";
+import { useState, useEffect } from "react";
+import Loader from "../../components/common/Loader";
+import ErrorMessage from "../../components/common/ErrorMessage";
+import { getAttendanceReports } from "../../services/adminService";
 
 function ReportsAnalytics() {
 
-    // Mock Data (later connect to API)
-    const students = [
-        { name: "Aman", attendance: 82 },
-        { name: "Rahul", attendance: 68 },
-        { name: "Priya", attendance: 74 },
-        { name: "Karan", attendance: 91 }
-    ];
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                const data = await getAttendanceReports();
+                setStudents(data.reports || []);
+            } catch (err) {
+                console.error("Error fetching analytics data:", err);
+                setError("Failed to load attendance analytics.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReports();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <ErrorMessage message={error} />;
+    }
 
     const totalStudents = students.length;
     const belowThreshold = students.filter(
         s => s.attendance < ATTENDANCE_THRESHOLD
     ).length;
 
-    const average =
+    const average = totalStudents > 0 ?
         Math.round(
             students.reduce((sum, s) => sum + s.attendance, 0) /
             totalStudents
-        );
+        ) : 0;
 
     return (
         <div className="bg-white p-8 rounded-2xl shadow-md space-y-8">

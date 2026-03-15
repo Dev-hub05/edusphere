@@ -14,6 +14,8 @@ const {
     requestGatepass,
     getGatepasses,
     getFees,
+    getCourses,
+    getExams,
 } = require("../controllers/studentController");
 
 // All routes below require: logged in + student role
@@ -51,5 +53,11 @@ router.get("/gatepasses", getGatepasses);
 
 // GET /api/student/fees — Get fee records
 router.get("/fees", getFees);
+
+// GET /api/student/courses — Get registered courses
+router.get("/courses", getCourses);
+
+// GET /api/student/exams — Get upcoming exams
+router.get("/exams", getExams);
 
 module.exports = router;

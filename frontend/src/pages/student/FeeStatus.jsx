@@ -1,21 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import FeeSummary from '../../components/student/FeeSummary';
 import PaymentHistory from '../../components/student/PaymentHistory';
+import Loader from '../../components/common/Loader';
+import ErrorMessage from '../../components/common/ErrorMessage';
+import { getStudentFees } from '../../services/studentService';
 
 const FeeStatus = () => {
-    const mockFeeData = {
-        totalDue: 45000,
-        paidAmount: 25000,
-        pendingAmount: 20000,
-        lastPayment: { amount: 12000, type: 'Tuition', ref: 'TXN_9982341' }
+    const [fees, setFees] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchFees = async () => {
+            try {
+                const data = await getStudentFees();
+                setFees(data);
+            } catch (err) {
+                console.error("Error fetching fees:", err);
+                setError("Failed to load fee information. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFees();
+    }, []);
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <Loader />
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <ErrorMessage message={error} />
+            </DashboardLayout>
+        );
+    }
+
+    // Calculate summary data from the actual fee records
+    const totalDue = fees.reduce((sum, fee) => sum + fee.amount, 0);
+    const paidAmount = fees.filter(fee => fee.status === 'paid').reduce((sum, fee) => sum + fee.amount, 0);
+    const pendingAmount = totalDue - paidAmount;
+    
+    // Find the most recent paid fee
+    const sortedPaidFees = [...fees].filter(f => f.status === 'paid').sort((a, b) => new Date(b.paidDate) - new Date(a.paidDate));
+    const lastPayment = sortedPaidFees.length > 0 ? {
+        amount: sortedPaidFees[0].amount,
+        type: sortedPaidFees[0].type,
+        ref: sortedPaidFees[0].transactionId || 'N/A'
+    } : null;
+
+    const summaryData = {
+        totalDue,
+        paidAmount,
+        pendingAmount,
+        lastPayment
     };
 
-    const mockTransactions = [
-        { id: 1, date: '2024-03-01', transactionId: 'TXN_9982341', type: 'Tuition', amount: 12000, status: 'paid' },
-        { id: 2, date: '2024-02-15', transactionId: 'TXN_9982340', type: 'Hostel', amount: 8000, status: 'paid' },
-        { id: 3, date: '2024-01-10', transactionId: 'TXN_9982339', type: 'Tuition', amount: 5000, status: 'paid' },
-    ];
+    // Format for the generic PaymentHistory component
+    const formattedTransactions = fees.map(fee => ({
+        id: fee._id,
+        date: new Date(fee.dueDate || fee.createdAt).toLocaleDateString(),
+        transactionId: fee.transactionId || 'Pending',
+        type: fee.type.charAt(0).toUpperCase() + fee.type.slice(1),
+        amount: fee.amount,
+        status: fee.status
+    }));
 
     return (
         <DashboardLayout>
@@ -25,10 +83,10 @@ const FeeStatus = () => {
                     <p className="text-gray-500 mt-1">Review your financial records and settlement history.</p>
                 </header>
 
-                <FeeSummary feeData={mockFeeData} />
+                <FeeSummary feeData={summaryData} />
 
                 <div className="space-y-6">
-                    <PaymentHistory transactions={mockTransactions} />
+                    <PaymentHistory transactions={formattedTransactions} />
                 </div>
             </div>
         </DashboardLayout>

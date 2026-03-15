@@ -62,3 +62,15 @@ export const getStudentFees = async () => {
     const { data } = await API.get("/student/fees");
     return data;
 };
+
+// Courses
+export const getStudentCourses = async () => {
+    const { data } = await API.get("/student/courses");
+    return data;
+};
+
+// Exams
+export const getStudentExamSchedule = async () => {
+    const { data } = await API.get("/student/exams");
+    return data;
+};

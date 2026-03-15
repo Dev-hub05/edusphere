@@ -1,15 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import ErrorMessage from '../../components/common/ErrorMessage';
+import { getProfile, getStudentExamSchedule } from '../../services/studentService';
 
 const AdmitCardTemplate = ({ studentData }) => {
+    const [data, setData] = useState(studentData || null);
+    const [loading, setLoading] = useState(!studentData);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // If data is provided via props (e.g., admin printing it), don't fetch
+        if (studentData) return;
+
+        const fetchAdmitCardData = async () => {
+            try {
+                const [profile, schedule] = await Promise.all([
+                    getProfile(),
+                    getStudentExamSchedule()
+                ]);
+
+                // Create a dynamic data object from fetched backend info
+                setData({
+                    name: profile.name,
+                    rollNo: profile.enrollmentNo,
+                    course: "B.Tech " + profile.department,
+                    session: "2023-24", // Assuming static or from settings in a real app
+                    examDate: schedule.exams.length > 0 
+                        ? new Date(schedule.exams[0].date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+                        : "TBD",
+                    universityName: "EDUSPHERE UNIVERSITY",
+                    universityLogo: "/assets/logo.png"
+                });
+            } catch (err) {
+                console.error("Error fetching admit card data:", err);
+                setError("Failed to generate admit card data. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAdmitCardData();
+    }, [studentData]);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <Loader />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <ErrorMessage message={error} />;
+    }
+
     const {
-        name = "ASHUTOSH SINGH",
-        rollNo = "2021004562",
-        course = "B.Tech Computer Science",
-        session = "2024-25",
-        examDate = "15-May-2024",
-        universityName = "EDUSPHERE UNIVERSITY",
-        universityLogo = "/assets/logo.png"
-    } = studentData || {};
+        name,
+        rollNo,
+        course,
+        session,
+        examDate,
+        universityName,
+        universityLogo
+    } = data;
 
     return (
         <div className="max-w-4xl mx-auto p-8 bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden relative">

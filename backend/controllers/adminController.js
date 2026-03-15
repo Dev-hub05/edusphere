@@ -7,6 +7,7 @@ const Notification = require("../models/Notification");
 const Grievance = require("../models/Grievance");
 const Attendance = require("../models/Attendance");
 const Result = require("../models/Result");
+const Exam = require("../models/Exam");
 
 // ==================== DASHBOARD ====================
 
@@ -518,6 +519,129 @@ const createNotification = async (req, res) => {
     }
 };
 
+// ==================== EXAM SCHEDULE MANAGEMENT ====================
+
+// @desc    Get all exams
+// @route   GET /api/admin/exams
+// @access  Private/Admin
+const getExams = async (req, res) => {
+    try {
+        const exams = await Exam.find()
+            .populate("course", "title courseCode")
+            .sort({ date: 1, startTime: 1 });
+        res.status(200).json({ count: exams.length, exams });
+    } catch (error) {
+        console.error("Get Exams Error:", error);
+        res.status(500).json({ message: "Server error while fetching exams" });
+    }
+};
+
+// @desc    Create an exam schedule
+// @route   POST /api/admin/exams
+// @access  Private/Admin
+const createExam = async (req, res) => {
+    try {
+        const { course, department, semester, date, startTime, endTime, venue, examType } = req.body;
+        
+        if (!course || !department || !semester || !date || !startTime || !endTime || !venue) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+        
+        const exam = await Exam.create({
+            course, department, semester, date, startTime, endTime, venue, examType
+        });
+        
+        res.status(201).json({ message: "Exam created successfully", exam });
+    } catch (error) {
+        console.error("Create Exam Error:", error);
+        res.status(500).json({ message: "Server error while creating exam" });
+    }
+};
+
+// @desc    Update an exam
+// @route   PUT /api/admin/exams/:id
+// @access  Private/Admin
+const updateExam = async (req, res) => {
+    try {
+        const exam = await Exam.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!exam) return res.status(404).json({ message: "Exam not found" });
+        res.status(200).json({ message: "Exam updated successfully", exam });
+    } catch (error) {
+        console.error("Update Exam Error:", error);
+        res.status(500).json({ message: "Server error while updating exam" });
+    }
+};
+
+// @desc    Delete an exam
+// @route   DELETE /api/admin/exams/:id
+// @access  Private/Admin
+const deleteExam = async (req, res) => {
+    try {
+        const exam = await Exam.findByIdAndDelete(req.params.id);
+        if (!exam) return res.status(404).json({ message: "Exam not found" });
+        res.status(200).json({ message: "Exam deleted successfully" });
+    } catch (error) {
+        console.error("Delete Exam Error:", error);
+        res.status(500).json({ message: "Server error while deleting exam" });
+    }
+};
+
+// ==================== ATTENDANCE REPORTS ====================
+
+// @desc    Get attendance reports for all students
+// @route   GET /api/admin/reports/attendance
+// @access  Private/Admin
+const getAttendanceReports = async (req, res) => {
+    try {
+        const stats = await Attendance.aggregate([
+            {
+                $group: {
+                    _id: "$student",
+                    total: { $sum: 1 },
+                    present: { $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] } }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    student: "$_id",
+                    percentage: {
+                        $cond: {
+                            if: { $eq: ["$total", 0] },
+                            then: 0,
+                            else: { $round: [{ $multiply: [{ $divide: ["$present", "$total"] }, 100] }, 0] }
+                        }
+                    }
+                }
+            }
+        ]);
+        
+        const populatedStats = await User.populate(stats, {
+            path: "student",
+            select: "name enrollmentNo department semester",
+            match: { role: "student" }
+        });
+        
+        // Filter out nulls if aggregate included non-student users from old data
+        const validStats = populatedStats.filter(s => s.student !== null);
+        
+        // Map to format suitable for frontend reports
+        const reports = validStats.map(s => ({
+            id: s.student._id,
+            name: s.student.name,
+            enrollmentNo: s.student.enrollmentNo,
+            department: s.student.department,
+            semester: s.student.semester,
+            attendance: s.percentage
+        })).sort((a, b) => a.name.localeCompare(b.name));
+        
+        res.status(200).json({ count: reports.length, reports });
+    } catch (error) {
+        console.error("Attendance Reports Error:", error);
+        res.status(500).json({ message: "Server error while fetching attendance reports" });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getUsers,
@@ -541,4 +665,9 @@ module.exports = {
     getGrievances,
     respondToGrievance,
     createNotification,
+    getExams,
+    createExam,
+    updateExam,
+    deleteExam,
+    getAttendanceReports
 };

@@ -1,17 +1,50 @@
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { ATTENDANCE_THRESHOLD } from "../../utils/attendanceUtils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Loader from "../../components/common/Loader";
+import ErrorMessage from "../../components/common/ErrorMessage";
+import { getAttendanceReports } from "../../services/adminService";
 
 function Reports() {
 
-    const students = [
-        { id: 1, name: "Aman Verma", attendance: 82 },
-        { id: 2, name: "Rahul Singh", attendance: 68 },
-        { id: 3, name: "Priya Sharma", attendance: 74 },
-        { id: 4, name: "Karan Mehta", attendance: 91 },
-    ];
-
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [showLowOnly, setShowLowOnly] = useState(false);
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                const data = await getAttendanceReports();
+                setStudents(data.reports || []);
+            } catch (err) {
+                console.error("Error fetching reports:", err);
+                setError("Failed to load attendance reports.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReports();
+    }, []);
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <Loader />
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <ErrorMessage message={error} />
+            </DashboardLayout>
+        );
+    }
 
     const filteredStudents = showLowOnly
         ? students.filter(s => s.attendance < ATTENDANCE_THRESHOLD)
@@ -22,11 +55,11 @@ function Reports() {
         s => s.attendance < ATTENDANCE_THRESHOLD
     ).length;
 
-    const average =
+    const average = totalStudents > 0 ?
         Math.round(
             students.reduce((sum, s) => sum + s.attendance, 0) /
             totalStudents
-        );
+        ) : 0;
 
     return (
         <DashboardLayout>

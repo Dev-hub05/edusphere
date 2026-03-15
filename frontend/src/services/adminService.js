@@ -117,3 +117,9 @@ export const createNotification = async (notificationData) => {
     const { data } = await API.post("/admin/notifications", notificationData);
     return data;
 };
+
+// Reports
+export const getAttendanceReports = async () => {
+    const { data } = await API.get("/admin/reports/attendance");
+    return data;
+};

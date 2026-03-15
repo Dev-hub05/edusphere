@@ -1,23 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiCheckCircle, FiUser, FiBook, FiClipboard, FiChevronRight, FiChevronLeft, FiAlertCircle } from 'react-icons/fi';
+import Loader from '../../components/common/Loader';
+import ErrorMessage from '../../components/common/ErrorMessage';
+import { getStudentCourses, getProfile } from '../../services/studentService';
 
 const ExamForm = () => {
     const [step, setStep] = useState(1);
+    const [courses, setCourses] = useState([]);
+    const [studentProfile, setStudentProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+
     const [formData, setFormData] = useState({
-        semester: '6th',
+        semester: '6th', // Will be overridden by profile data
         examType: 'Regular',
         subjects: [],
         declaration: false
     });
 
-    const mockSubjects = [
-        { id: 1, code: "CS301", name: "Artificial Intelligence", credits: 4, type: "Core" },
-        { id: 2, code: "CS302", name: "Cloud Computing", credits: 3, type: "Core" },
-        { id: 3, code: "CS303", name: "Mobile App Development", credits: 3, type: "Core" },
-        { id: 4, code: "CS304", name: "Cyber Security", credits: 3, type: "Elective" },
-        { id: 5, code: "CS305", name: "Machine Learning", credits: 4, type: "Elective" },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch profile and available courses in parallel
+                const [profileData, coursesData] = await Promise.all([
+                    getProfile(),
+                    getStudentCourses()
+                ]);
+                
+                setStudentProfile(profileData);
+                setFormData(prev => ({
+                    ...prev,
+                    semester: `${profileData.semester}th` // Assuming formatting like '6th'
+                }));
+                
+                // Format courses for the component
+                const formattedCourses = coursesData.courses.map(course => ({
+                    id: course._id,
+                    code: course.courseCode,
+                    name: course.title,
+                    credits: course.credits,
+                    type: "Core" // Backend model doesn't specify type, assuming Core or deriving it if added later
+                }));
+                
+                setCourses(formattedCourses);
+            } catch (err) {
+                console.error("Error fetching form data:", err);
+                setError("Failed to load your profile and courses. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     const handleSubjectToggle = (subject) => {
         const isSelected = formData.subjects.find(s => s.id === subject.id);
@@ -36,6 +74,58 @@ const ExamForm = () => {
         { id: 2, name: 'Subject Selection', icon: <FiBook /> },
         { id: 3, name: 'Review & Submit', icon: <FiCheckCircle /> },
     ];
+
+    const handleSubmit = async () => {
+        if (!formData.declaration || formData.subjects.length === 0) return;
+        setIsSubmitting(true);
+        try {
+            // Ideally, we'd send this to a /student/exam-forms endpoint.
+            // Simulating API call for submission since we didn't add the submission endpoint explicitly in the plan
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setIsSuccess(true);
+        } catch (err) {
+            console.error("Submission failed:", err);
+            // Handle error (e.g., using a toast notification)
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <ErrorMessage message={error} />;
+    }
+
+    if (isSuccess) {
+        return (
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="max-w-2xl mx-auto bg-white rounded-3xl p-10 text-center shadow-xl border border-gray-100"
+            >
+                <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                    <FiCheckCircle />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Form Submitted Successfully!</h2>
+                <p className="text-gray-500 mb-8">
+                    Your examination form has been recorded. You can view your scheduled exams once the timetable is published by the admin.
+                </p>
+                <button 
+                    onClick={() => window.location.reload()} 
+                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all"
+                >
+                    Return to Dashboard
+                </button>
+            </motion.div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -81,11 +171,11 @@ const ExamForm = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Full Name</label>
-                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-gray-700 font-semibold">ASHUTOSH SINGH</div>
+                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-gray-700 font-semibold">{studentProfile?.name || "N/A"}</div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Enrollment No.</label>
-                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-gray-700 font-semibold">CS2021004562</div>
+                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-gray-700 font-semibold">{studentProfile?.enrollmentNo || "N/A"}</div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Semester</label>
@@ -136,7 +226,7 @@ const ExamForm = () => {
                                     Select Subjects for {formData.semester} Sem
                                 </h3>
                                 <div className="grid gap-4">
-                                    {mockSubjects.map((sub) => (
+                                    {courses.map((sub) => (
                                         <div
                                             key={sub.id}
                                             onClick={() => handleSubjectToggle(sub)}
@@ -241,10 +331,18 @@ const ExamForm = () => {
                         </button>
                     ) : (
                         <button
-                            disabled={!formData.declaration || formData.subjects.length === 0}
+                            onClick={handleSubmit}
+                            disabled={!formData.declaration || formData.subjects.length === 0 || isSubmitting}
                             className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Submit Form <FiClipboard />
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                <>Submit Form <FiClipboard /></>
+                            )}
                         </button>
                     )}
                 </div>

@@ -7,7 +7,7 @@ import RespondGrievance from "../../components/faculty/RespondGrievance";
 import Loader from "../../components/common/Loader";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import { useEffect, useState } from "react";
-import { getFacultyDashboardStats } from "../../services/facultyService";
+import { getFacultyDashboardStats, getLowAttendanceStudents } from "../../services/facultyService";
 import NoticeWidget from "../../components/common/NoticeWidget";
 import EventWidget from "../../components/common/EventWidget";
 import { ATTENDANCE_THRESHOLD } from "../../utils/attendanceUtils";
@@ -15,14 +15,28 @@ import { ATTENDANCE_THRESHOLD } from "../../utils/attendanceUtils";
 function FacultyDashboard() {
 
     const [stats, setStats] = useState(null);
+    const [lowAttendanceStudents, setLowAttendanceStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        getFacultyDashboardStats()
-            .then(data => setStats(data))
-            .catch(() => setError("Failed to load faculty data"))
-            .finally(() => setLoading(false));
+        const fetchDashboardData = async () => {
+            try {
+                const [statsData, lowAttendanceData] = await Promise.all([
+                    getFacultyDashboardStats(),
+                    getLowAttendanceStudents()
+                ]);
+                setStats(statsData);
+                setLowAttendanceStudents(lowAttendanceData.students || []);
+            } catch (err) {
+                console.error("Dashboard error:", err);
+                setError("Failed to load faculty data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
     }, []);
 
     if (loading) {
@@ -41,16 +55,8 @@ function FacultyDashboard() {
         );
     }
 
-    // Mock data (replace later with API response)
-    const students = [
-        { id: 1, name: "Rahul Singh", attendance: 68 },
-        { id: 2, name: "Priya Sharma", attendance: 72 },
-        { id: 3, name: "Aman Verma", attendance: 85 },
-    ];
-
-    const lowAttendanceStudents = students.filter(
-        s => s.attendance < ATTENDANCE_THRESHOLD
-    );
+    // Removed static students array and filtering logic,
+    // as backend getLowAttendanceStudents already provides filtered logic.
 
     return (
         <DashboardLayout>
@@ -114,7 +120,7 @@ function FacultyDashboard() {
                                 <tbody>
                                     {lowAttendanceStudents.map(student => (
                                         <tr
-                                            key={student.id}
+                                            key={student._id}
                                             className="border-t bg-red-50 hover:bg-red-100 transition"
                                         >
                                             <td className="p-4 font-medium">
@@ -122,7 +128,7 @@ function FacultyDashboard() {
                                             </td>
 
                                             <td className="p-4 font-semibold text-red-600">
-                                                {student.attendance}%
+                                                {student.attendancePercentage}%
                                             </td>
 
                                             <td className="p-4">

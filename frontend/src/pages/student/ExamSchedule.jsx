@@ -1,14 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import Loader from '../../components/common/Loader';
+import ErrorMessage from '../../components/common/ErrorMessage';
 import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
+import { getStudentExamSchedule } from '../../services/studentService';
 
 const ExamSchedule = () => {
-    const schedule = [
-        { id: 1, subject: "Artificial Intelligence", code: "CS301", date: "May 15, 2024", time: "10:00 AM - 01:00 PM", venue: "Lobby Hall, Block A" },
-        { id: 2, subject: "Cloud Computing", code: "CS302", date: "May 18, 2024", time: "10:00 AM - 01:00 PM", venue: "Lab 4, IT Block" },
-        { id: 3, subject: "Mobile App Development", code: "CS303", date: "May 21, 2024", time: "10:00 AM - 01:00 PM", venue: "Room 102, Main Block" },
-        { id: 4, subject: "Cyber Security", code: "CS304", date: "May 24, 2024", time: "10:00 AM - 01:00 PM", venue: "Lobby Hall, Block A" },
-    ];
+    const [schedule, setSchedule] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchSchedule = async () => {
+            try {
+                const data = await getStudentExamSchedule();
+                // Map API data to the component's expected format
+                const formattedSchedule = data.exams.map((exam, index) => ({
+                    id: exam._id || index,
+                    subject: exam.course ? exam.course.title : "Unknown Subject",
+                    code: exam.course ? exam.course.courseCode : "N/A",
+                    date: new Date(exam.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                    time: `${exam.startTime} - ${exam.endTime}`,
+                    venue: exam.venue
+                }));
+                setSchedule(formattedSchedule);
+            } catch (err) {
+                console.error("Error fetching exam schedule:", err);
+                setError("Failed to load examination schedule.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSchedule();
+    }, []);
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <Loader />
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <ErrorMessage message={error} />
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>

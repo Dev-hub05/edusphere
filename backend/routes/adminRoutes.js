@@ -25,6 +25,11 @@ const {
     getGrievances,
     respondToGrievance,
     createNotification,
+    getExams,
+    createExam,
+    updateExam,
+    deleteExam,
+    getAttendanceReports
 } = require("../controllers/adminController");
 
 // All routes below require: logged in + admin role
@@ -59,5 +64,12 @@ router.put("/grievances/:id", respondToGrievance);
 
 // Notifications
 router.post("/notifications", createNotification);
+
+// Exam Management
+router.route("/exams").get(getExams).post(createExam);
+router.route("/exams/:id").put(updateExam).delete(deleteExam);
+
+// Reports
+router.get("/reports/attendance", getAttendanceReports);
 
 module.exports = router;

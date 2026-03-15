@@ -3,8 +3,12 @@ const Attendance = require("../models/Attendance");
 const Result = require("../models/Result");
 const Grievance = require("../models/Grievance");
 const Notification = require("../models/Notification");
+const Gatepass = require("../models/Gatepass");
+const Fee = require("../models/Fee");
+const Course = require("../models/Course");
+const Exam = require("../models/Exam");
 
-// ==================== PROFILE ====================
+// ==================== DASHBOARD & PROFILE ====================
 
 // @desc    Get student profile
 // @route   GET /api/student/profile
@@ -288,7 +292,6 @@ const getDashboardStats = async (req, res) => {
 
 // ==================== GATEPASS ====================
 
-const Gatepass = require("../models/Gatepass");
 
 // @desc    Request a gatepass
 // @route   POST /api/student/gatepass
@@ -334,7 +337,6 @@ const getGatepasses = async (req, res) => {
 
 // ==================== FEES ====================
 
-const Fee = require("../models/Fee");
 
 // @desc    Get student's fee records
 // @route   GET /api/student/fees
@@ -344,8 +346,52 @@ const getFees = async (req, res) => {
         const fees = await Fee.find({ student: req.user.id }).sort({ dueDate: -1 });
         res.status(200).json(fees);
     } catch (error) {
-        console.error("Get fees error:", error.message);
-        res.status(500).json({ message: "Server error", error: error.message });
+        console.error("Get Fees Error:", error);
+        res.status(500).json({ message: "Server error while fetching fees" });
+    }
+};
+
+// ==================== COURSES & EXAMS ====================
+
+// @desc    Get registered courses for the student
+// @route   GET /api/student/courses
+// @access  Private/Student
+const getCourses = async (req, res) => {
+    try {
+        const student = await User.findById(req.user._id);
+        
+        // Fetch courses that match the student's department and semester
+        const courses = await Course.find({
+            department: student.department,
+            semester: student.semester
+        }).populate("faculty", "name");
+        
+        res.status(200).json({ count: courses.length, courses });
+    } catch (error) {
+        console.error("Get Courses Error:", error);
+        res.status(500).json({ message: "Server error while fetching courses" });
+    }
+};
+
+// @desc    Get upcoming exams for the student
+// @route   GET /api/student/exams
+// @access  Private/Student
+const getExams = async (req, res) => {
+    try {
+        const student = await User.findById(req.user._id);
+        
+        // Fetch exams related to the student's department and semester
+        const exams = await Exam.find({
+            department: student.department,
+            semester: student.semester
+        })
+        .populate("course", "title courseCode")
+        .sort({ date: 1, startTime: 1 });
+        
+        res.status(200).json({ count: exams.length, exams });
+    } catch (error) {
+        console.error("Get Exams Error:", error);
+        res.status(500).json({ message: "Server error while fetching exams" });
     }
 };
 
@@ -361,4 +407,6 @@ module.exports = {
     requestGatepass,
     getGatepasses,
     getFees,
+    getCourses,
+    getExams
 };

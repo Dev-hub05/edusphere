@@ -24,8 +24,13 @@ export const markAttendance = async (attendanceData) => {
     return data;
 };
 
-export const getAttendance = async (params) => {
+export const getFacultyAttendance = async (params) => { // Renamed from getAttendance
     const { data } = await API.get("/faculty/attendance", { params });
+    return data;
+};
+
+export const getLowAttendanceStudents = async (params) => {
+    const { data } = await API.get("/faculty/attendance/low", { params });
     return data;
 };
 
