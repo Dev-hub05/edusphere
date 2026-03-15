@@ -50,5 +50,5 @@ resultSchema.index(
     { student: 1, subject: 1, examType: 1, semester: 1 },
     { unique: true }
 );
-
+// exports module
 module.exports = mongoose.model("Result", resultSchema);
