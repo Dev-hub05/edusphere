@@ -35,5 +35,5 @@ const feedbackSchema = new mongoose.Schema(
 
 // Prevent a student from rating the same course multiple times
 feedbackSchema.index({ student: 1, course: 1 }, { unique: true });
-
+// exports module
 module.exports = mongoose.model("Feedback", feedbackSchema);
