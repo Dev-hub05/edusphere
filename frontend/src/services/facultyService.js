@@ -34,11 +34,6 @@ export const getLowAttendanceStudents = async (params) => {
     return data;
 };
 
-export const getLowAttendanceStudents = async (params) => {
-    const { data } = await API.get("/faculty/attendance/low", { params });
-    return data;
-};
-
 // Results
 export const uploadMarks = async (marksData) => {
     const { data } = await API.post("/faculty/results", marksData);

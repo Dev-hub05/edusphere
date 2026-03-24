@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Loader from '../../components/common/Loader';
 import ErrorMessage from '../../components/common/ErrorMessage';
-import { getProfile, getStudentExamSchedule } from '../../services/studentService';
+import { getStudentProfile, getStudentExamSchedule } from '../../services/studentService';
 
 const AdmitCardTemplate = ({ studentData }) => {
     const [data, setData] = useState(studentData || null);
@@ -15,7 +15,7 @@ const AdmitCardTemplate = ({ studentData }) => {
         const fetchAdmitCardData = async () => {
             try {
                 const [profile, schedule] = await Promise.all([
-                    getProfile(),
+                    getStudentProfile(),
                     getStudentExamSchedule()
                 ]);
 
@@ -123,6 +123,10 @@ const AdmitCardTemplate = ({ studentData }) => {
 
                     <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Exam Schedule Info</h3>
+                        <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                            <span className="text-sm text-gray-600">Date</span>
+                            <span className="text-sm font-bold text-gray-800">{examDate}</span>
+                        </div>
                         <div className="flex items-center justify-between py-2 border-b border-gray-200">
                             <span className="text-sm text-gray-600">Reporting Time</span>
                             <span className="text-sm font-bold text-gray-800">09:00 AM</span>

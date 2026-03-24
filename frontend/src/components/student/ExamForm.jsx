@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiCheckCircle, FiUser, FiBook, FiClipboard, FiChevronRight, FiChevronLeft, FiAlertCircle } from 'react-icons/fi';
 import Loader from '../../components/common/Loader';
 import ErrorMessage from '../../components/common/ErrorMessage';
-import { getStudentCourses, getProfile } from '../../services/studentService';
+import { getStudentCourses, getStudentProfile } from '../../services/studentService';
 
 const ExamForm = () => {
     const [step, setStep] = useState(1);
@@ -26,7 +26,7 @@ const ExamForm = () => {
             try {
                 // Fetch profile and available courses in parallel
                 const [profileData, coursesData] = await Promise.all([
-                    getProfile(),
+                    getStudentProfile(),
                     getStudentCourses()
                 ]);
                 
